@@ -9,25 +9,28 @@ Usage
 ### help
 
 _fmake_ has a simple help documentation. Run:
+
 > fmake -h
+
 and the help printed is as following:
-> fmake 0.1: a small script for easy creation of makefile for Fortran (standard 90 or higher) projects
-> the aim is the easy creation of the compiling rules with the correct hierarchy for inter-dependent modules
-> Usage: fmake [options [args]]
-> Options:
->   -h
->     print this help message
->   -s [dir]
->     dir = directory containing source files .[fF][90,95,03,08,2k]; default directory name is './src/'
->   -m [makefile]
->     makefile = file name of the output makefile; default file name is 'makefile'
->   -header or -hd [header]
->     header = file containing the 'user defined header' of makefile; default file name is 'header'
->     Note:
->          if no header file is used a very basic header of the makefile is automatically created by fmake
->          and the user must complete the makefile before use it
-> Note:
->      The hierarchy of compiling rules is made up without the intrinsic, the 'OMP_LIB' and 'MPI' modules.
+
+      fmake 0.1: a small script for easy creation of makefile for Fortran (standard 90 or higher) projects
+      the aim is the easy creation of the compiling rules with the correct hierarchy for inter-dependent modules
+      Usage: fmake [options [args]]
+      Options:
+        -h
+          print this help message
+        -s [dir]
+          dir = directory containing source files .[fF][90,95,03,08,2k]; default directory name is './src/'
+        -m [makefile]
+          makefile = file name of the output makefile; default file name is 'makefile'
+        -header or -hd [header]
+          header = file containing the 'user defined header' of makefile; default file name is 'header'
+          Note:
+               if no header file is used a very basic header of the makefile is automatically created by fmake
+               and the user must complete the makefile before use it
+      Note:
+           The hierarchy of compiling rules is made up without the intrinsic, the 'OMP_LIB' and 'MPI' modules.
 
 ### makefile creation
 
