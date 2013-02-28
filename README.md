@@ -1,7 +1,7 @@
 fmake
 =====
 
-_fmake_ is a small script for easy creation of makefile for Fortran (standard 90 or higher) projects. The aim is the easy creation of the compiling rules with the correct hierarchy for inter-dependent modules a task that could be very boring for big project with many source files.
+_fmake_ is a small script for the easy creation of makefile for Fortran (standard 90 or higher) projects. The aim is to easily create the compiling rules with the correct hierarchy for inter-dependent modules, a task that could be very boring for big project with many source files.
 
 Usage
 -----
@@ -14,8 +14,8 @@ _fmake_ has a simple help documentation. Run:
 
 and the help printed is as following:
 
-      fmake 0.1: a small script for easy creation of makefile for Fortran (standard 90 or higher) projects
-      the aim is the easy creation of the compiling rules with the correct hierarchy for inter-dependent modules
+      fmake 0.1: a small script for the easy creation of makefile for Fortran (standard 90 or higher) projects
+      the aim is to easily create the compiling rules with the correct hierarchy for inter-dependent modules
       Usage: fmake [options [args]]
       Options:
         -h
@@ -25,12 +25,12 @@ and the help printed is as following:
         -m [makefile]
           makefile = file name of the output makefile; default file name is 'makefile'
         -header or -hd [header]
-          header = file containing the 'user defined header' of makefile; default file name is 'header'
+          header = file containing the 'user defined header' of makefile; it is not used by default
           Note:
                if no header file is used a very basic header of the makefile is automatically created by fmake
-               and the user must complete the makefile before use it
+               and the user must check the makefile before use it
       Note:
-           The hierarchy of compiling rules is made up without the intrinsic, the 'OMP_LIB' and 'MPI' modules.
+           The hierarchy of compiling rules is made up without the intrinsic modules, namely the 'OMP_LIB' and 'MPI' modules.
 
 ### makefile creation
 
@@ -42,13 +42,13 @@ If you want a more complicated makefile with customized header you can use your 
 
 > fmake -s sources/ -header YourHeaderFile
 
-By default a file named _makefile_ is created. Its name can be changed by the switch "-m YourCustomName"
+By default a file named _makefile_ is created. Its name can be changed by the CLI switch "-m YourCustomName"
 
 ToDo
 ----
 
 * Recursive search for source files;
-* GUI;
+* GUI.
 
 Copyrights
 ----------
