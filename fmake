@@ -217,7 +217,7 @@ else  # basic defualt header
   echo '.PHONY : cleanobj' >> $MFILE
   echo 'cleanobj:' >> $MFILE
   if [ "$SIMPLE" = "yes" ] ; then
-    echo '	@echo " deleting objects' >> $MFILE
+    echo '	@echo " deleting objects"' >> $MFILE
   else
     echo '	@echo -e "\033[1;31m deleting objects \033[0m" | tee make.log' >> $MFILE
   fi
@@ -226,7 +226,7 @@ else  # basic defualt header
   echo '.PHONY : cleanmod' >> $MFILE
   echo 'cleanmod:' >> $MFILE
   if [ "$SIMPLE" = "yes" ] ; then
-    echo '	@echo " deleting mods' >> $MFILE
+    echo '	@echo " deleting mods"' >> $MFILE
   else
     echo '	@echo -e "\033[1;31m deleting mods \033[0m" | tee -a make.log' >> $MFILE
   fi
@@ -235,7 +235,7 @@ else  # basic defualt header
   echo '.PHONY : cleanexe' >> $MFILE
   echo 'cleanexe:' >> $MFILE
   if [ "$SIMPLE" = "yes" ] ; then
-    echo '	@echo " deleting exes' >> $MFILE
+    echo '	@echo " deleting exes"' >> $MFILE
   else
     echo '	@echo -e "\033[1;31m deleting exes \033[0m" | tee -a make.log' >> $MFILE
   fi
