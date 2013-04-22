@@ -91,6 +91,44 @@ function print_usage {
   echo "Note:"
   echo "     The hierarchy of compiling rules is made up without the intrinsic modules, namely the 'OMP_LIB' and 'MPI' modules."
 }
+
+function write_crule {
+  # $1=$RULE, $2=$DEP
+  if [ "$2" = "" ] ; then
+    echo $1 >> $MFILE
+  else
+    echo "$1 \\" >> $MFILE
+    echo -e "	"$2 | sed "s/ / \\\\\n\t/g" > DEPFILE.tmp
+    uniq DEPFILE.tmp > DEPFILEuq.tmp
+    cat DEPFILEuq.tmp >> $MFILE
+    rm -f DEPFILE.tmp DEPFILEuq.tmp
+  fi
+  if [ "$SIMPLE" = "yes" ] ; then
+    echo "	@echo \$(COTEXT)" >> $MFILE
+    echo "	@\$(FC) \$(OPTSC) \$< -o \$@" >> $MFILE
+  else
+    echo "	@echo \$(COTEXT) | tee -a make.log" >> $MFILE
+    echo "	@\$(FC) \$(OPTSC) \$< -o \$@ 1>> diagnostic_messages 2>> error_messages" >> $MFILE
+  fi
+  echo >> $MFILE
+}
+
+function write_lrule {
+  # $1=$RULE, $2=$DEP, $3=$EXE
+  echo $1 >> $MFILE
+  echo "	@rm -f \$(filter-out $2,\$(EXESOBJ))" >> $MFILE
+  if [ "$SIMPLE" = "yes" ] ; then
+    echo "	@echo" >> $MFILE
+    echo "	@echo \$(LITEXT)" >> $MFILE
+    echo "	@\$(FC) \$(OPTSL) \$(DOBJ)*.o \$(LIBS) -o \$@" >> $MFILE
+  else
+    echo "	@echo | tee -a make.log" >> $MFILE
+    echo "	@echo \$(LITEXT) | tee -a make.log" >> $MFILE
+    echo "	@\$(FC) \$(OPTSL) \$(DOBJ)*.o \$(LIBS) -o \$@ 1>> diagnostic_messages 2>> error_messages" >> $MFILE
+  fi
+  echo "EXES := \$(EXES) $3" >> $MFILE
+  echo >> $MFILE
+}
 #-----------------------------------------------------------------------------------------------------------------------------------
 
 #-----------------------------------------------------------------------------------------------------------------------------------
@@ -271,47 +309,41 @@ echo 'EXESPO  = $(addsuffix .o,$(LCEXES))' >> $MFILE
 echo 'EXESOBJ = $(addprefix $(DOBJ),$(EXESPO))' >> $MFILE
 echo >> $MFILE
 # linking rules
-for f in $( ls $DSRC*.[fF]9[05] $DSRC*.[fF]0[38] $DSRC*.[fF]2[kK] 2> /dev/null ) ; do
+for f in $( ls $DSRC*.[fF] $DSRC*.[fF]9[05] $DSRC*.[fF]0[38] $DSRC*.[fF]2[kK] 2> /dev/null ) ; do
   EXE=`grep -i '^ *program ' $f | awk '{print $2}'`
   if [ "$EXE" != "" ] ; then
     DEP=`echo $EXE | tr '[:upper:]' '[:lower:]' | sed s/$/\.o/ | awk  '{print "$(DOBJ)"$1}'`
-    echo "\$(DEXE)$EXE : PRINTINFO \$(MKDIRS) $DEP" >> $MFILE
-    echo "	@rm -f \$(filter-out $DEP,\$(EXESOBJ))" >> $MFILE
-    if [ "$SIMPLE" = "yes" ] ; then
-      echo "	@echo" >> $MFILE
-      echo "	@echo \$(LITEXT)" >> $MFILE
-      echo "	@\$(FC) \$(OPTSL) \$(DOBJ)*.o \$(LIBS) -o \$@" >> $MFILE
-    else
-      echo "	@echo | tee -a make.log" >> $MFILE
-      echo "	@echo \$(LITEXT) | tee -a make.log" >> $MFILE
-      echo "	@\$(FC) \$(OPTSL) \$(DOBJ)*.o \$(LIBS) -o \$@ 1>> diagnostic_messages 2>> error_messages" >> $MFILE
-    fi
-    echo "EXES := \$(EXES) $EXE" >> $MFILE
-    echo >> $MFILE
+    RULE="\$(DEXE)$EXE : PRINTINFO \$(MKDIRS) $DEP"
+    write_lrule "$RULE" "$DEP" "$EXE"
   fi
 done
 # compiling rules
-for f in $( ls $DSRC*.[fF]9[05] $DSRC*.[fF]0[38] $DSRC*.[fF]2[kK] 2> /dev/null ) ; do
-  DEP=`grep -i '^ *use *' $f | grep -vi 'omp_lib' | grep -vi 'mpi' | grep -vi ', *intrinsic::' | tr '[:upper:]' '[:lower:]' | sed s/'^ *use *'// | sed s/'^:: *'// | awk '{print $1}' | sed s/,// | sed s/$/\.o/ | awk  '{print "$(DOBJ)"$1}'`
-  RULE="\$(DOBJ)"`basename $f .f90 | tr '[:upper:]' '[:lower:]'`.o
+LEXTES=";"
+for f in $( ls $DSRC*.[fF] $DSRC*.[fF]9[05] $DSRC*.[fF]0[38] $DSRC*.[fF]2[kK] 2> /dev/null ) ; do
   FF=`basename $f`
-  if [ "$DEP" = "" ] ; then
-    echo "$RULE : $FF" >> $MFILE
-  else
-    echo "$RULE : $FF \\" >> $MFILE
-    echo -e "	"$DEP | sed "s/ / \\\\\n\t/g" >> $MFILE
-    uniq $MFILE > $MFILE"_uniq"
-    mv -f $MFILE"_uniq" $MFILE
-  fi
-  if [ "$SIMPLE" = "yes" ] ; then
-    echo "	@echo \$(COTEXT)" >> $MFILE
-    echo "	@\$(FC) \$(OPTSC) \$< -o \$@" >> $MFILE
-  else
-    echo "	@echo \$(COTEXT) | tee -a make.log" >> $MFILE
-    echo "	@\$(FC) \$(OPTSC) \$< -o \$@ 1>> diagnostic_messages 2>> error_messages" >> $MFILE
-  fi
-  echo >> $MFILE
+  EXTE=`echo $FF | awk -F . '{print "."$NF}'`
+  LEXTES="$LEXTES$EXTE;"
+  DEP=`grep -i '^ *use *' $f | grep -vi 'omp_lib' | grep -vi 'mpi' | grep -vi ', *intrinsic::' | tr '[:upper:]' '[:lower:]' | sed s/'^ *use *'// | sed s/'^:: *'// | awk '{print $1}' | sed s/,// | sed s/$/\.o/ | awk  '{print "$(DOBJ)"$1}'`
+  RULE="\$(DOBJ)"`basename $f $EXTE | tr '[:upper:]' '[:lower:]'`.o" : $FF"
+  write_crule "$RULE" "$DEP"
 done
+# generic compiling rules for compiled object without explicit dependency
+case $LEXTES in
+  *";.f;"*) write_crule "\$(DOBJ)%.o : %.f" "" ;;
+  *";.F;"*) write_crule "\$(DOBJ)%.o : %.F" "" ;;
+  *";.f90;"*) write_crule "\$(DOBJ)%.o : %.f90" "" ;;
+  *";.F90;"*) write_crule "\$(DOBJ)%.o : %.F90" "" ;;
+  *";.f95;"*) write_crule "\$(DOBJ)%.o : %.f95" "" ;;
+  *";.F95;"*) write_crule "\$(DOBJ)%.o : %.F95" "" ;;
+  *";.f03;"*) write_crule "\$(DOBJ)%.o : %.f03" "" ;;
+  *";.F03;"*) write_crule "\$(DOBJ)%.o : %.F03" "" ;;
+  *";.f08;"*) write_crule "\$(DOBJ)%.o : %.f08" "" ;;
+  *";.F08;"*) write_crule "\$(DOBJ)%.o : %.F08" "" ;;
+  *";.f2k;"*) write_crule "\$(DOBJ)%.o : %.f2k" "" ;;
+  *";.F2k;"*) write_crule "\$(DOBJ)%.o : %.F2k" "" ;;
+  *";.f2K;"*) write_crule "\$(DOBJ)%.o : %.f2K" "" ;;
+  *";.F2K;"*) write_crule "\$(DOBJ)%.o : %.F2K" "" ;;
+esac
 echo $SEP >> $MFILE
 exit 0
 #-----------------------------------------------------------------------------------------------------------------------------------
